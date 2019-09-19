@@ -1,0 +1,42 @@
+
+exemple projet grafana
+======================
+
+cat /root/docker-glpi-v3/grafana/Dockerfile		# Explication du Dockerfile
+
+cd cat /root/docker-glpi-v3/grafana/
+docker build . -t mygrafana				# Build de l'image mygrafana
+
+# Introduction rapide aux caches validations / invalidation
+# Introduction aux layers (slide suivant)
+
+docker images | grep grafana
+
+
+Commit et push d’une image
+=========================
+
+cd docker-demo
+docker run -d -v /volnginx:/usr/share/nginx/html --name nginxp2 -p 8080:80 --env-file proxy.env nginx
+docker exec -it nginxp2 bash
+> apt-get update
+> apt-get install curl vim net-tools lsof iputils-ping
+> apt-get clean && rm -rf /var/lib/apt/lists/*
+> unset http_proxy & unset https_proxy
+
+docker login
+    - user : tequilaweb81
+    - pass :  F,,,@D,,
+
+docker stop nginxp2
+docker diff nginxp2
+docker commit nginxp2 tequilaweb81/nginxp2
+docker push tequilaweb81/nginxp2
+docker pull tequilaweb81/nginxp2
+
+#Execution de l’instance
+docker run -d -v /volnginx:/usr/share/nginx/html --name nginxp2 -p 8080:80 tequilaweb81/nginxp2
+
+#Vérification des outils installés
+
+

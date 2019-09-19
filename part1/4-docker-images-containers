@@ -1,0 +1,64 @@
+https://hub.docker.com/
+
+# démo commandes de bases
+--------------------
+
+docker ps / ps -a		# liste des processus docker 
+docker image ls			# liste des images 
+docker volume ls		# liste des volumes
+docker network ls		# liste des réseaux
+docker inspect			# inspection d’un container ou d'un objet
+
+
+# 1er container
+---------------
+
+docker run alpine echo "Hello tous le monde"
+docker ps                       # ou est le processus ? explication de l'arret du container
+docker ps -a                    # le container est arreté
+docker logs <numcontainer>      # verification des logs
+
+
+# démo : lancement d’une image sans mapping de port
+-------------------------------------------------------
+docker run nginx 			# lancement de l’image nginx
+docker ps				# vérification du processus
+docker exec -it <#container> bash	# entrée dans un container
+
+
+# démo : même des images d’OS
+------------------------------
+docker run -i -t ubuntu:artful /bin/bash
+
+
+# lancement d’une image avec mapping de port et autres paramètres
+------------------------------------------------------------------
+
+docker run --name nginx -p 8080:80 nginx		# Mapping port hôte 8080 sur port container 80
+docker exec -it nginx bash 
+   > cd usr/share/nginx/html/index.html			# Modification d’un fichier dans le container
+   > sed -i -e "s/nginx/MY-CONTAINER/g" index.html
+affichage via un navigateur
+docker stop 						# arrêt du container
+
+# Démo : 
+------
+  1 relance du container arreté 			docker start nginx 
+  2 instanciation d’un nouveau container		docker rm nginx && docker run --name nginx -p 8080:80 nginx
+=> accés a la page d'accueil                            (ip:port via un browser)
+
+# Exemple avec la persistance de données
+docker run -v /volnginx:/usr/share/nginx/html --name nginxp -p 8080:80 nginx	# lancement du container
+affichage via navigateur
+explications ….
+vim /volnginx/index.html							# creation du fichier index.html (host)
+arrêt et suppression du container puis relance d’une nouvelle instance		# les données sont toujours là
+
+# Inspection d’un container 
+------------------------
+docker inspect nginxp
+
+
+# Lancement plus complexe (exemple) : 
+docker run  -v /datavol:/var/lib/mysql --expose 3306 --link mysql_master:master --network=dockerglpiv3_back-office --network=dockerglpiv3_admin  --env-file env/glpi-slave.env  --name slave3 dockerglpiv3_mysql_slave
+

@@ -1,0 +1,39 @@
+rpm -qa | grep -i docker
+docker-ce-18.03.0.ce-0.1.rc1.el7.centos.x86_6
+
+docker version
+
+
+[root@localhost ~]# ps -aux | grep docker
+root      4615  0.2  3.3 780780 81208 ?        Ssl  15:56   0:08 /usr/bin/dockerd
+root      4619  0.1  1.0 293916 24836 ?        Ssl  15:56   0:04 docker-containerd --config /var/run/docker/containerd/containerd.toml
+
+Liste des fichiers ouverts (+ explication socket unix)
+lsof –p 4615 
+
+Socket unix : /var/run/docker.sock
+
+API 
+curl --unix-socket /var/run/docker.sock -H "Content-Type: application/json"   -d '{"Image": "alpine", "Cmd": ["echo", "hello world"]}'   -X POST http:/v1.37/containers/create
+Documentation : https://docs.docker.com/engine/api/v1.30/
+
+Configuration du démon
+/etc/systemd/system/docker.service.d/
+
+docker search varnish
+
+NAME                            DESCRIPTION                                   		STARS             	OFFICIAL         	AUTOMATED
+million12/varnish             Varnish 4.x on top of CentOS-7, highly custo…    		76                                      	[OK]
+eeacms/varnish                Varnish docker image with support for dynami…   		18                                      	[OK]
+jonbaldie/varnish             Fast, simple, and lightweight Varnish Docker…   		9                                       	[OK]
+tutum/varnish                  Base image to run a Varnish server              		7                                       
+cloudposse/varnish         Provides `varnish` service along with `confd…   		4                                       	[OK]
+
+# Structure docker
+ll /var/lib/docker/
+
+# See API call on docker launch
+strace -Tfe trace=write docker run hello-world
+[pid 20083] write(3, "GET /_ping HTTP/1.1\r\nHost: docke"..., 80) = 80 <0.000019>
+[pid 20083] write(3, "POST /v1.39/containers/create HT"..., 1623) = 1623 <0.000022>
+

@@ -1,0 +1,14 @@
+1/ Lancer et nommer un container "db"
+docker run -d --name db training/postgres
+
+2/ Lancer le container "web" et créer le lien avec le container "db" (legacy)
+docker run -d -P --name web --link db training/webapp python app.py
+
+3/ Verifier les liens
+docker inspect -f "{{ .HostConfig.Links }}" web
+
+4/ se connecter au container et verifier
+docker exec -it web /bin/bash
+
+all environment variables originating from Docker within a container are made available to any container that links to it
+Docker adds a host entry for the source linked container to the /etc/hosts

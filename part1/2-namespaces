@@ -1,0 +1,44 @@
+namespace
+==========
+
+Les namespace sont les espaces de noms, le noyau Linux en gère 7
+liste des namespaces dans lequel se trouve un processus : /proc/PID/ns
+
+ls -al /proc/self/ns/			# notre processus appartient à ces namespaces
+unshare --help				# appel système et commande shell permettant de créer un nouveau namespace
+nsenter --help				# commande permettant d’entrer dans un namespace spécifique
+
+unshare --net ; ip link list ; ls -al /proc/self/ns/ ; exit	# nouveau namesapce réseau
+ou ip netns add newnet ; ip netns exec newnet bash ; ip link list ; exit
+
+unshare --pid ; ps -aux ; exit				# namespace pid
+
+# pour tracer les appels systemes fait par Docker
+strace -f -q -e trace=clone,unshare,setns,execve -p $(pidof containerd) -o /tmp/strace.out docker run hello-world  
+
+
+Exemple réseau			
+--------------
+unshare --net						# nouveau namespace réseau
+ip link list						# aucune interface réseau configurée dsans ce namespace
+touch /var/run/netns/newnet				# création du nom du nouveau namespace dans netns (un ns existe tant qu’un ps l’utilise)
+mount --bind /proc/self/ns/net /var/run/netns/newnet	# montage local pour persistance du ns pour qu’il continue d’exister en dehors du shell courant
+exit							# deconnection du shell
+ls /var/run/netns ; ip netns list			# on retrouve bien notre namespace réseau
+nsenter --net=/var/run/netns/newnet ip link list	# on peut executer des commandes sur ce namespace
+
+
+exemple suivant
+---------------
+unshare --fork --pid --net --mount-proc			# crée un nouveau namespace réseau et pid en remontant /proc
+ps -aux							# l'espace des processus est désormais cloisonné
+ip link list						# l'espace réseau l'est également
+exit
+
+Exemple Docker
+--------------
+# lancer un container
+PID=$(docker inspect --format {{.State.Pid}} <container_name_or_ID>)
+ps -aux | grep  $PID
+nsenter --target $PID --mount --uts --ipc --net --pid
+

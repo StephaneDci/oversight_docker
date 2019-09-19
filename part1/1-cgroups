@@ -1,0 +1,80 @@
+cgroup
+======
+
+Contrôle et limitation des accès aux ressources
+se présente sous la forme d’un système de fichier virtuel (tmpfs) contenant l’ensemble des cgroups gérés dans des dossiers différents
+
+ls -al /sys/fs/cgroup
+
+chaque dossier contient des fichiers (exemple):
+   - tasks : liste des taches (pid)
+   - pids.max : limitation
+
+Il est possible de créer des cgroups pour controler des accès aux ressources (c’est ce que docker fait)
+Une tâche ne peut appartenir qu’a un seul cgroup (pour supprimer une tâche d’un cgroup on l’enregistre dans un autre)
+
+Exemple de creation d’un cgroup de limitation du nombre de sous process
+=========================================================================
+# On se dirige dans le répertoire qui contrôle le cgroup des pids
+cd /sys/fs/cgroup/pids/
+	
+# On cree un nouveau control group pour nos tests
+mkdir -p fork-limit
+
+# L'arborescence des cgroup se cree automatiquement
+ll fork-limit/
+
+# info : $$ represente le processus du shell courant
+ps -aux | grep "$$"
+
+# pour le moment aucune tache (pid) dans notre cgroup
+cat fork-limit/tasks
+
+# On ajoute le shell courant
+echo "$$" > fork-limit/tasks
+
+# Surprise : 2 taches : le shell + le processus qui fait le cat
+cat fork-limit/tasks
+
+# Notre process shell appartient desormant au cgroup PID que nous avons crées (cf 7-pids)
+cat /proc/$$/cgroup
+
+# Aucune limitation pour le moment
+cat /sys/fs/cgroup/pids/fork-limit/pids.max
+
+# On ajoute une restriction sur le nombre de sous processus 
+echo 5 > /sys/fs/cgroup/pids/fork-limit/pids.max
+echo "toto" | echo "tata" | echo "titi" | echo "lolo" | echo "boom"
+
+# Attention : Execution ForkBomb
+python forkbomb.py
+
+# On reinscrit notre shell dans le cgroup
+echo "$$" >> /sys/fs/cgroup/pids/tasks	
+
+# Il disparait de l'ancien cgroup
+cat  /sys/fs/cgroup/pids/tasksfork-limit/tasks
+
+
+Exemple avec CPU (Limitation a 20%)
+==============================================================================
+# https://access.redhat.com/documentation/en-us/red_hat_enterprise_linux/6/html/resource_management_guide/sec-cpu
+
+cd /sys/fs/cgroup/cpu,cpuacct
+mkdir cpubomb                                   # Creation du cgroup cpubomb
+cd cpubomb; ls -al
+echo "200000" > cpu.cfs_quota_us; echo "1000000" > cpu.cfs_period_us # Attention on ne peut pas utiliser vi pour modifier ce fichier
+echo "$$" > tasks
+cd ~/docker-demo; echo "$$"			# On reverifie que nous sommes dans le bons shell
+python cpubomb.sh				# Attention : Execution de la CPU-bomb
+top						# On confirme l'utilisation UC
+
+
+Exemple docker
+==============
+lancer un container et noter son numero, puis
+cd  /sys/fs/cgroup/pids/docker ; ls -al ; cd <num_container> ; cat tasks # puis ps -aux | grep <id tasks>
+
+cat /sys/fs/cgroup/pids/docker/pids.max
+cat /sys/fs/cgroup/pids/docker/tasks
+

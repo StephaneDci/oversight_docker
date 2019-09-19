@@ -1,0 +1,54 @@
+#Version de l'API :
+------------------ 
+
+docker version | grep -i API
+=> API version:   1.37
+
+
+# Specification de l'API
+----------------------
+
+=> https://docs.docker.com/engine/api/v1.37/
+
+
+# Exemple : 
+-----------
+
+HTTP
+
+Liste des containers
+curl --unix-socket /var/run/docker.sock "http:/v1.37/containers/json?all=True"
+
+
+création Container 
+
+Requete HTTP (post DATA JSON)
+ curl --unix-socket /var/run/docker.sock -H "Content-Type: application/json" \
+  -d '{"Image": "alpine", "Cmd": ["echo", "hello world"]}' \
+  -X POST http:/v1.37/containers/create
+
+Response HTTP JSON
+{"Id":"be08a8de13760c275b9e92074e5f860552209eda765ff3f58a80f776e5340761","Warnings":null}
+
+
+Lancement Container
+
+cmd    curl --unix-socket /var/run/docker.sock -X POST http:/v1.37/containers/[num_container]/start
+=>     curl --unix-socket /var/run/docker.sock -X POST http:/v1.37/containers/be08a8de13/start
+
+
+curl --unix-socket /var/run/docker.sock -X POST http:/v1.37/containers/be08a8de13/wait
+{"StatusCode":0}
+
+$ curl --unix-socket /var/run/docker.sock "http:/v1.37/containers/be08a8de13/logs?stdout=1"
+hello world
+
+
+PYTHON
+
+
+
+
+
+
+
